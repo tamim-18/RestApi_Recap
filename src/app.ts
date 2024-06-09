@@ -1,12 +1,20 @@
 // seting up the express app
 import express from "express";
+import cors from "cors";
 import globalErrorHandler from "./middlewares/globalErrorHandler";
 import userRouter from "./user/userRouter";
 import bookRouter from "./book/bookRouter";
+import { config } from "./config/config";
 
 const app = express();
 // express.json() is a middleware for the json formatting
 app.use(express.json());
+// cors is a middleware for enabling cross-origin resource sharing
+app.use(
+  cors({
+    origin: config.frontend_url,
+  })
+);
 //routes
 //http methods are:
 //GET, POST, PUT, DELETE

@@ -177,7 +177,29 @@ const deleteById = async (req: Request, res: Response, next: NextFunction) => {
       createHttpError(403, "You are not authorized to delete this book")
     );
   }
-  await bookModel.deleteOne({ _id: bookId });
-  res.json({ message: "Book deleted successfully" });
+  // delelting from cloudinary
+  //console.log(book);
+  const coverImage = book.coverImage.split("/");
+  const coverImagePublicId =
+    coverImage.at(-2) + "/" + coverImage.at(-1)?.split(".").at(-2);
+  //console.log(coverImagePublicId);
+
+  // for bookfile
+  const bookFile = book.file.split("/");
+  const bookFilePublicId = bookFile.at(-2) + "/" + bookFile.at(-1);
+  //console.log("Bookfile:", bookFilePublicId);
+
+  // deleting from cloudinary
+  try {
+    await cloudinary.uploader.destroy(coverImagePublicId);
+    await cloudinary.uploader.destroy(bookFilePublicId, {
+      resource_type: "raw",
+    }); // RESOURCE_TYPE IS RAW BECAUSE IT IS A PDF FILE
+  } catch (err) {
+    return next(createHttpError(500, "Error while deleting the book"));
+  }
+  // delete the book from the database
+  await bookModel.deleteOne({ _id: book });
+  return res.sendStatus(204);
 };
 export { createBook, updateBook, getBook, getBookById, deleteById };
